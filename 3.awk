@@ -95,8 +95,8 @@ function repeat(what, size) {
     return string
 }
 
-# ss: RSTART
-# se: RSTART + RLENGTH - 1
+# ss: _rstart
+# se: _rstart + RLENGTH - 1
 # objarr: an array which is used to store the index of the object's position in
 #         the field, and the object's fields within a subarray.
 function bounds(ss, se, objarr) {

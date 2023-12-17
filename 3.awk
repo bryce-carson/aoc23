@@ -1,5 +1,6 @@
 # github.com/bryce-carson
 # The identifier of functions which change the match data begin with _
+@include "colouredOutput.awk"
 
 BEGIN { RS = "" }
 
@@ -8,27 +9,17 @@ BEGIN { RS = "" }
     lineWidth = length($1)
     gsub("\n", "", $0)
     total = length($0)
-    nums = "[0-9]+"
-    syms = "[^.0-9]"
+    nums = "[[:digit:]]+"
+    syms = "[^.[:digit:]]"
 
     # Delcare arrays, use them then delete the null-index element before later
     # iteration.
     nArr[init]; _indices(nArr, nums); delete nArr[init]
     sArr[init]; _indices(sArr, syms); delete sArr[init]
 
-    for(i in nArr) {
-        print ""
-        for(j in nArr[i])
-            print nArr[i][j]
-    }
-
     # For each number, determine if it is a part number. If it is not, delete the
     # number from the array.
     for(idx in nArr) {
-        print substr($0, nArr[idx][1], nArr[idx][2] - (nArr[idx][1] - 1))
-        print substr($0, nArr[idx][3], nArr[idx][4] - (nArr[idx][3] - 1))
-        print substr($0, nArr[idx][5], nArr[idx][6] - (nArr[idx][5] - 1))
-
         t = match(substr($0, nArr[idx][1], nArr[idx][2] - (nArr[idx][1] - 1)), syms)
         m = match(substr($0, nArr[idx][3], nArr[idx][4] - (nArr[idx][3] - 1)), syms)
         b = match(substr($0, nArr[idx][5], nArr[idx][6] - (nArr[idx][5] - 1)), syms)
@@ -59,7 +50,7 @@ BEGIN { RS = "" }
         # If exactly two part numbers are found for a given star, the star is
         # actually a gear and the ratio (product) of the part numbers is added to the
         # gearRatioSum.
-        if(counter == 2) gearRatioSum += maybeGears[pos][1] * maybeGears[pos][1]
+        if(counter == 2) gearRatioSum += maybeGears[pos][1] * maybeGears[pos][2]
     }
 
     print "(Part two) Sum of gear ratios: " gearRatioSum
@@ -71,27 +62,27 @@ BEGIN { RS = "" }
 # arr: The object array to use.
 # re: the regular expression to use to construct objects.
 function _indices(arr, re) {
+    # NOTE: Iterate based on the whether the regular expression is nums or
+    # not. When matching nums, advance point further; when matching syms,
+    # only advance point by one.
     for(i = 1;
         i <= length($0) && match(substr($0, i), re, num);
-        # NOTE: Iterate based on the whether the regular expression is nums or
-        # not. When matching nums, advance point further; when matching syms,
-        # only advance point by one.
-        #
+        i = _rstart + ((re == "[[:digit:]]+") ? RLENGTH : 0))
+    {
         # NOTE:_rstart is an adjusted start to overcome the scanning through
         # substrings. It maintains an adjusted RSTART such that _rstart is where
         # the match begins in $0, rather than RSTART which is the index the
         # match occurs at in the substring in each iteration.
-        i += ((re == nums) ? _rstart + RLENGTH : 1))
-    {
-        _rstart = RSTART + i - 1
-        arr[_rstart][0] = num[0]
-        bounds(_rstart, _rstart + RLENGTH - 1, arr)
+        _rstart = RSTART + i
+
+        arr[_rstart - 1][0] = num[0]
+        bounds((_rstart - 1), (_rstart - 1) + RLENGTH - 1, arr)
     }
 }
 
 function repeat(what, size) {
     str = ""
-    for(i = 0; i < size; i++) str = str ("" what) # Force str conversion for safety.
+    for(k = 0; k < size; k++) str = str ("" what) # Force str conversion for safety.
     return str
 }
 

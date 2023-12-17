@@ -90,9 +90,9 @@ function _indices(arr, re) {
 }
 
 function repeat(what, size) {
-    string = ""
-    for(i = 0; i < size; i++) string = string ("" what) # Force string conversion for safety.
-    return string
+    str = ""
+    for(i = 0; i < size; i++) str = str ("" what) # Force str conversion for safety.
+    return str
 }
 
 # ss: _rstart

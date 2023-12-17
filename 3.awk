@@ -16,34 +16,24 @@ BEGIN { RS = "" }
     nArr[init]; _indices(nArr, nums); delete nArr[init]
     sArr[init]; _indices(sArr, syms); delete sArr[init]
 
-    # DEBUG
-    # for(i in nArr)
-    #     for(j in nArr[i])
-    #         print nArr[i][j]
+    for(i in nArr) {
+        print ""
+        for(j in nArr[i])
+            print nArr[i][j]
+    }
 
     # For each number, determine if it is a part number. If it is not, delete the
     # number from the array.
     for(idx in nArr) {
-        l = nArr[idx][2] - (nArr[idx][1] - 1)
+        print substr($0, nArr[idx][1], nArr[idx][2] - (nArr[idx][1] - 1))
+        print substr($0, nArr[idx][3], nArr[idx][4] - (nArr[idx][3] - 1))
+        print substr($0, nArr[idx][5], nArr[idx][6] - (nArr[idx][5] - 1))
 
-        # DEBUG
-        if(l < 1) exit(1)
+        t = match(substr($0, nArr[idx][1], nArr[idx][2] - (nArr[idx][1] - 1)), syms)
+        m = match(substr($0, nArr[idx][3], nArr[idx][4] - (nArr[idx][3] - 1)), syms)
+        b = match(substr($0, nArr[idx][5], nArr[idx][6] - (nArr[idx][5] - 1)), syms)
 
-        s1 = substr($0, nArr[idx][1], l)
-        s2 = substr($0, nArr[idx][3], l)
-        s3 = substr($0, nArr[idx][5], l)
-
-        print nArr[idx][1] "\t" s1
-        print nArr[idx][3] "\t" s2
-        print nArr[idx][5] "\t" s3
-
-        t = match(s1, syms)
-        m = match(s2, syms)
-        b = match(s3, syms)
-
-        print nArr[idx][0] " is a part number?\t" or(t, m, b)
-
-        if(or(t, m, b)) partNumberSum += nArr[idx]
+        if(or(t, m, b)) partNumberSum += nArr[idx][0]
         else delete nArr[idx]
     }
 
@@ -64,7 +54,7 @@ BEGIN { RS = "" }
         for(idx in nArr)
             for(subidx = 1; subidx < 6; subidx += 2)
                 for(i = nArr[idx][subidx]; i <= nArr[idx][subidx + 1]; i++)
-                    if(i == pos) maybeGears[pos][++counter] = nArr[idx]
+                    if(i == pos) maybeGears[pos][++counter] = nArr[idx][0]
 
         # If exactly two part numbers are found for a given star, the star is
         # actually a gear and the ratio (product) of the part numbers is added to the
@@ -81,15 +71,21 @@ BEGIN { RS = "" }
 # arr: The object array to use.
 # re: the regular expression to use to construct objects.
 function _indices(arr, re) {
-    for(i = 1; i <= length($0);) {
-        # Advance point to after the current match
-        if(!match(substr($0, i, length($0) - i + 1), re, num)) break;
-
-        arr[RSTART][0] = num[0]
-        i = RSTART + RLENGTH + 1 # Advance the pointer
-
-        bounds(RSTART, RSTART + RLENGTH - 1, arr)
-        sub(re, repeat(".", RLENGTH), $0)
+    for(i = 1;
+        i <= length($0) && match(substr($0, i), re, num);
+        # NOTE: Iterate based on the whether the regular expression is nums or
+        # not. When matching nums, advance point further; when matching syms,
+        # only advance point by one.
+        #
+        # NOTE:_rstart is an adjusted start to overcome the scanning through
+        # substrings. It maintains an adjusted RSTART such that _rstart is where
+        # the match begins in $0, rather than RSTART which is the index the
+        # match occurs at in the substring in each iteration.
+        i += ((re == nums) ? _rstart + RLENGTH : 1))
+    {
+        _rstart = RSTART + i - 1
+        arr[_rstart][0] = num[0]
+        bounds(_rstart, _rstart + RLENGTH - 1, arr)
     }
 }
 

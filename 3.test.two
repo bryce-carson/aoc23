@@ -1,0 +1,10 @@
+
+
+ 1  ...0.1....10
+11  ....**....20
+21  .....2....  30
+
+
+The file contains at least two new line characters.
+Symbols occur on the fifteenth and sixteenth non-control characters, but these are on the second line, and so are offset forwards one character because of the newline.
+With the newlines removed, offset calculations become easier, in which case the symbols are indeed the fifteenth and sixteenth characters in the input string.
